@@ -104,3 +104,17 @@ Do not conflate RedCircle Target store-stock observations with the merchant's ow
 - Carrier accounts, API credentials, webhook endpoints, receiving address, and shipping services are not yet verified/configured.
 - No labels purchased, shipments booked, packages dispatched, deliveries marked, inventory received, or production deployment performed.
 - Carrier API integrations and any Shopify/Stripe writes require their own connection verification and explicit approval. Keep all development/test work private and non-production until separate release approval.
+
+
+## Carrier priority and access scope — 2026-11-04
+
+User-selected carrier priority:
+- Primary carriers: USPS and FedEx.
+- Additional supported carriers: UPS and DHL.
+- Scope: both inbound supplier receiving and outbound customer fulfillment, with tracking events, delivery exceptions, returns, and shipment status reconciliation.
+
+Implement one provider adapter per carrier behind the shared shipment-event interface. Normalize carrier-specific tracking states without discarding raw source events. Support multiple packages per order and supplier shipment. Keep pickup/local delivery separate from carrier shipping.
+
+**Access status:** this records the requested carrier scope; it does not establish that any USPS, FedEx, UPS, or DHL account/API credentials, OAuth grants, webhooks, billing profiles, negotiated rates, or label permissions have been connected or verified. Discover and request only the minimum permissions required. Do not store carrier secrets in GitHub or Notion. Do not buy labels, tender packages, schedule pickups, or alter shipping charges without separate approval.
+
+**Implementation order:** USPS + FedEx first; UPS + DHL adapter compatibility and test coverage next. Use sandbox/test credentials or carrier test endpoints where available. If a carrier offers no sandbox for a specific feature, keep that feature read-only or mocked until separately approved. Production activation requires account ownership/access verification, webhook authentication, rate/service validation, address validation, test evidence, and explicit release approval.
