@@ -118,3 +118,28 @@ Implement one provider adapter per carrier behind the shared shipment-event inte
 **Access status:** this records the requested carrier scope; it does not establish that any USPS, FedEx, UPS, or DHL account/API credentials, OAuth grants, webhooks, billing profiles, negotiated rates, or label permissions have been connected or verified. Discover and request only the minimum permissions required. Do not store carrier secrets in GitHub or Notion. Do not buy labels, tender packages, schedule pickups, or alter shipping charges without separate approval.
 
 **Implementation order:** USPS + FedEx first; UPS + DHL adapter compatibility and test coverage next. Use sandbox/test credentials or carrier test endpoints where available. If a carrier offers no sandbox for a specific feature, keep that feature read-only or mocked until separately approved. Production activation requires account ownership/access verification, webhook authentication, rate/service validation, address validation, test evidence, and explicit release approval.
+
+
+## Coordinated launch sequence and notification reliability — 2026-11-04
+
+The user wants the projects to operate concurrently. Recommended approach: run implementation/readiness workstreams in parallel, but release in gated order so unresolved dependencies in one project do not block the others.
+
+1. **Via del oro — first production candidate.** Existing Shopify store and Stripe sandbox context were previously read-verified. Complete live-account ownership/permission review, product and pricing validation, tax/shipping/refund policy, checkout tests, fulfillment controls, payout eligibility/destination review, and operational monitoring before any production activation. No live changes are implied or authorized by this sequence.
+2. **Good-Buy / Target catalog — second release candidate.** The repository currently contains planning documentation on feature/redcircle-target-catalog; application code, rotated RedCircle key, carrier adapters, end-to-end tests, and production deployment remain incomplete/unverified. Build and test while Via del oro readiness proceeds.
+3. **OMG Sweeps — third release candidate.** Keep separate from the other projects. Prior context records unresolved repository visibility and Render service verification, plus provider written eligibility/compliance requirements. Complete repo/deploy access, sweepstakes/legal/provider eligibility, funds-flow, Shopify fulfillment and Stripe sandbox tests before production review.
+
+All three workstreams may proceed in parallel; production launch order is gated as above and may be revised only if verified readiness evidence changes.
+
+### Notification and event-delivery reliability
+
+The user requests notifications enabled and no stuck routing. This is a requirement, not a verified setting. Current checks found no general ChatGPT notification toggle exposed through the available settings tools. Device-level Android notification permission, battery/background restrictions, notification channels, and delivery status cannot be verified from this project connection.
+
+Implement and test notification delivery with:
+- Explicit event-to-recipient/channel routing and a visible delivery state (queued, sent, delivered/acknowledged where provider supports it, failed, retrying, dead-letter).
+- Durable queue/outbox, idempotency keys, bounded exponential retries, dead-letter queue, replay tooling, and alerting for age-of-oldest-message and failure rate.
+- Correlation IDs across Shopify, Stripe, carrier, app, and Notion events; preserve source event IDs and timestamps.
+- Alert on missing webhook acknowledgements, invalid signatures, repeated failures, route misconfiguration, expired credentials, and webhook backlog.
+- Separate operational alerts (payment/fulfillment failures, shipment exceptions, payout holds) from informational updates.
+- Do not claim push/email/SMS delivery merely because an event was queued or a webhook was accepted. Do not send test or customer notifications without an approved destination and test plan.
+
+Before production, run an end-to-end notification test for each approved channel and carrier integration, verify retries and dead-letter recovery, and document the results. No notification preference or device setting was changed by this update.
